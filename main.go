@@ -12,21 +12,26 @@ import (
 )
 
 const (
-	ratio     = 16.0 / 9.0
-	width     = 400
-	height    = int(width / ratio)
-	aaSamples = 100
-	c         = 255.99
+	ratio = 16.0 / 9.0
+	width = 1280
+
+	height          = int(width / ratio)
+	aaSamples       = 100
+	c               = 255.99
+	maxDepth        = 100
+	samplesPerPixel = 1
 )
 
 var (
 	white = st.Vec3{X: 1.0, Y: 1.0, Z: 1.0}
 	blue  = st.Vec3{X: 0.5, Y: 0.7, Z: 1.0}
 
-	camera  = st.NewCamera(ratio, 1, 0.5)
+	camera  = st.NewCamera(ratio, 1, 2.5)
 	objects = []st.Hittable{
-		st.NewSphere(st.Vec3{X: 0, Y: 0, Z: -1}, 0.5),
-		st.NewSphere(st.Vec3{X: 15, Y: 2.6, Z: -20}, 3),
+		st.NewSphere(st.Vec3{X: 0, Y: -103, Z: -20}, 100, st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5})),
+		// st.NewSphere(st.Vec3{X: 15, Y: 2.6, Z: -20}, 3),
+		st.NewSphere(st.Vec3{X: 0, Y: 0, Z: -20}, 3, st.NewMetal(st.Vec3{X: 0, Y: 0.2, Z: 0.8}, 1)),
+		st.NewSphere(st.Vec3{X: 5, Y: 0, Z: -20}, 1.5, st.NewMetal(st.Vec3{X: 0.8, Y: 0.0, Z: 0.5}, 0.6)),
 	}
 
 	world = st.World{Objects: objects}
@@ -34,20 +39,26 @@ var (
 	bar = b.Default(int64(width * height))
 )
 
-// need to not egg. also need to not have to do this
 // need to do material properties
 // need to do lights
 // make it faster
 
-func color(r *st.Ray, h st.Hittable) st.Vec3 {
-	if hit, rec := h.Hit(r, 0.0, math.MaxFloat64); hit {
-		return rec.Normal.AddScalar(1.0).MulScalar(0.5)
+func color(r *st.Ray, h st.Hittable, depth int) st.Vec3 {
+	if depth <= 0 {
+		return st.Vec3{}
+	}
+	if hit, rec := h.Hit(r, 0.001, math.MaxFloat64); hit {
+		check, scattered, attenuation := rec.Mat.Scatter(*r, rec)
+		if check {
+			return attenuation.Mul(color(scattered, h, depth-1))
+		}
+		return st.Vec3{X: 0, Y: 0, Z: 0}
 	}
 
 	unitDirection := r.Direction.Normalize()
 	t := 0.5 * (unitDirection.Y + 1.0)
-
 	return white.MulScalar(1.0 - t).Add(blue.MulScalar(t))
+
 }
 
 func main() {
@@ -69,16 +80,12 @@ func main() {
 				u := (float64(i) + rand.Float64()) / float64(width)
 				v := (float64(j) + rand.Float64()) / float64(height)
 				r := camera.GetRay(u, v)
-				col = col.Add(color(&r, &world))
+				col = col.Add(color(&r, &world, maxDepth))
 			}
 
 			col = col.DivScalar(float64(aaSamples))
 
-			ir := int(c * math.Sqrt(col.X))
-			ig := int(c * math.Sqrt(col.Y))
-			ib := int(c * math.Sqrt(col.Z))
-
-			fmt.Fprintf(f, "%d %d %d\n", ir, ig, ib)
+			st.WriteColor(f, col, samplesPerPixel)
 
 			bar.Add(1)
 

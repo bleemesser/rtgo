@@ -1,7 +1,5 @@
 package structs
 
 type Material interface {
-	Bounce(in Ray, hit HitRef) (bool, Ray)
-	Color() Vec3
+	Scatter(in Ray, hit HitRef) (bool, *Ray, Vec3)
 }
-
