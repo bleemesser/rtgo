@@ -7,7 +7,11 @@ type Sphere struct {
 	Radius float64
 }
 
-func (s *Sphere) Hit(r *Ray, tMin float64, tMax float64) (bool, HitRef) {
+func NewSphere(center Vec3, radius float64) Sphere {
+	return Sphere{Center: center, Radius: radius}
+}
+
+func (s Sphere) Hit(r *Ray, tMin float64, tMax float64) (bool, HitRef) {
 	 o := r.Origin.Sub(s.Center)
 	 a := r.Direction.Dot(r.Direction)
 	 halfB := o.Dot(r.Direction)

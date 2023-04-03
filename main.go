@@ -2,36 +2,36 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"math/rand"
 	"math"
+	"math/rand"
+	"os"
 	st "rtgo/structs"
+
 	// progress bar
 	b "github.com/schollz/progressbar/v3"
 )
 
 const (
-	ratio = 16.0/9.0
-	width = 400
-	height = int(width/ratio)
+	ratio     = 16.0 / 9.0
+	width     = 400
+	height    = int(width / ratio)
 	aaSamples = 100
-	c = 255.99
+	c         = 255.99
 )
 
 var (
 	white = st.Vec3{X: 1.0, Y: 1.0, Z: 1.0}
-	blue = st.Vec3{X: 0.5, Y: 0.7, Z: 1.0}
+	blue  = st.Vec3{X: 0.5, Y: 0.7, Z: 1.0}
 
-	camera = st.NewCamera(ratio, 1,0.5)
+	camera  = st.NewCamera(ratio, 1, 0.5)
+	objects = []st.Hittable{
+		st.NewSphere(st.Vec3{X: 0, Y: 0, Z: -1}, 0.5),
+		st.NewSphere(st.Vec3{X: 15, Y: 2.6, Z: -20}, 3),
+	}
 
-	sphere = st.Sphere{Center: st.Vec3{X: -0.7, Y: 0.4, Z: -1}, Radius: 0.2}
-	sphere2 = st.Sphere{Center: st.Vec3{X: 0, Y: 1, Z: -3}, Radius: 0.8}
-	floor = st.Sphere{Center: st.Vec3{X: 0.0, Y: -100.5, Z: -1.0}, Radius: 100.0}
+	world = st.World{Objects: objects}
 
-	world = st.World{Objects: []st.Hittable{&sphere, &sphere2, &floor}}
-
-	bar = b.Default(int64(width*height))
-	
+	bar = b.Default(int64(width * height))
 )
 
 // need to not egg. also need to not have to do this
