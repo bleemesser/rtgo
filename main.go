@@ -12,14 +12,13 @@ import (
 )
 
 const (
-	ratio = 16.0 / 9.0
-	width = 1280
+	ratio     = 16.0 / 9.0
+	width     = 1920 // setting
+	aaSamples = 100
+	maxDepth  = 100
+	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
-	height          = int(width / ratio)
-	aaSamples       = 100
-	c               = 255.99
-	maxDepth        = 100
-	samplesPerPixel = 1
+	height = int(width / ratio)
 )
 
 var (
@@ -30,8 +29,9 @@ var (
 	objects = []st.Hittable{
 		st.NewSphere(st.Vec3{X: 0, Y: -103, Z: -20}, 100, st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5})),
 		// st.NewSphere(st.Vec3{X: 15, Y: 2.6, Z: -20}, 3),
-		st.NewSphere(st.Vec3{X: 0, Y: 0, Z: -20}, 3, st.NewMetal(st.Vec3{X: 0, Y: 0.2, Z: 0.8}, 1)),
-		st.NewSphere(st.Vec3{X: 5, Y: 0, Z: -20}, 1.5, st.NewMetal(st.Vec3{X: 0.8, Y: 0.0, Z: 0.5}, 0.6)),
+		st.NewSphere(st.Vec3{X: 0, Y: 0, Z: -20}, 3, st.NewMetal(st.Vec3{X: 0.8, Y: 0.8, Z: 0.8}, 0)),
+		st.NewSphere(st.Vec3{X: 5, Y: 0, Z: -20}, 1.5, st.NewMetal(st.Vec3{X: 1, Y: 0.6, Z: 0}, 0.04)),
+		st.NewSphere(st.Vec3{X: -4.2, Y: 0, Z: -20}, 1, st.NewMetal(st.Vec3{X: 1, Y: 0.4, Z: 0}, 0)),
 	}
 
 	world = st.World{Objects: objects}
@@ -85,7 +85,7 @@ func main() {
 
 			col = col.DivScalar(float64(aaSamples))
 
-			st.WriteColor(f, col, samplesPerPixel)
+			st.WriteColor(f, col, exposure)
 
 			bar.Add(1)
 

@@ -85,12 +85,12 @@ func clamp(x float64, min float64, max float64) float64 {
 	return x
 }
 
-func WriteColor(f *os.File, col Vec3, samplesPerPixel int) {
+func WriteColor(f *os.File, col Vec3, exposure float64) {
 	r := col.X
 	g := col.Y
 	b := col.Z
 
-	scale := 1.0 / float64(samplesPerPixel)
+	scale := 1.0 / float64(exposure)
 	r = math.Sqrt(scale * r)
 	g = math.Sqrt(scale * g)
 	b = math.Sqrt(scale * b)
