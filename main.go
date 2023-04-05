@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	st "rtgo/structs"
+	ut "rtgo/utility"
 	"sync"
 	"time"
 
@@ -28,6 +29,10 @@ const (
 	partDiv = 5 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
 	// 1080p = 24, 1440p = 20, 2160p = 12 or 24
 	// 400w = 4, 800w = 10
+
+	// FILE SETTINGS
+	outputAsPng = false
+	fileName = "out" // don't add the file extension
 )
 
 var (
@@ -105,14 +110,6 @@ func randomScene() st.World {
 
 func main() {
 	start := time.Now()
-	f, err := os.Create("image.ppm")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	defer f.Close()
-
-	fmt.Fprintf(f, "P3\n%d %d\n255\n", width, height)
 
 	// 2d array of pixels as buf
 	buf := make([][]st.Vec3, height)
@@ -206,12 +203,25 @@ func main() {
 	// wait for all threads to finish, without this some pixels are left blank
 	wg.Wait()
 	// write pixels from buffer to file in correct order
-	for j := height - 1; j >= 0; j-- {
-		for i := 0; i < width; i++ {
-			col := buf[j][i]
-			st.WriteColor(f, col, exposure)
+	if outputAsPng {
+		ut.ArrayToPng(buf, fileName + ".png", exposure)
+	} else {
+		f, err := os.Create(fileName + ".ppm")
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		defer f.Close()
+	
+		fmt.Fprintf(f, "P3\n%d %d\n255\n", width, height)
+		for j := height - 1; j >= 0; j-- {
+			for i := 0; i < width; i++ {
+				col := buf[j][i]
+				st.WriteColor(f, col, exposure)
+			}
 		}
 	}
+	// convert image to png instead
 
 	fmt.Println("Render Time:", time.Since(start))
 

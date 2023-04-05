@@ -79,7 +79,7 @@ func RandomInUnitSphere() Vec3 {
 	return p
 }
 
-func clamp(x float64, min float64, max float64) float64 {
+func Clamp(x float64, min float64, max float64) float64 {
 	if x < min {
 		return min
 	}
@@ -99,9 +99,9 @@ func WriteColor(f *os.File, col Vec3, exposure float64) {
 	g = math.Sqrt(scale * g)
 	b = math.Sqrt(scale * b)
 
-	ir := int(256 * clamp(r, 0.0, 0.999))
-	ig := int(256 * clamp(g, 0.0, 0.999))
-	ib := int(256 * clamp(b, 0.0, 0.999))
+	ir := int(256 * Clamp(r, 0.0, 0.999))
+	ig := int(256 * Clamp(g, 0.0, 0.999))
+	ib := int(256 * Clamp(b, 0.0, 0.999))
 
 	fmt.Fprintf(f, "%d %d %d\n", ir, ig, ib)
 }
