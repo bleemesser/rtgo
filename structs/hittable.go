@@ -9,6 +9,7 @@ type HitRef struct {
 
 type Hittable interface {
 	Hit(r *Ray, tMin float64, tMax float64) (bool, HitRef)
+	GetPos() Vec3
 }
 
 func (hr *HitRef) SetFaceNormal(r *Ray, outwardNormal Vec3) {

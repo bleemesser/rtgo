@@ -20,3 +20,7 @@ func (w *World) Hit(r *Ray, tMin float64, tMax float64) (bool, HitRef) {
 
 	return hit, ref
 }
+
+func (w *World) GetPos() Vec3 {
+	return Vec3{}
+}

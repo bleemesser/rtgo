@@ -46,3 +46,7 @@ func (s Sphere) Hit(r *Ray, tMin float64, tMax float64) (bool, HitRef) {
 
 	return false, rec
 }
+
+func (s Sphere) GetPos() Vec3 {
+	return s.Center
+}
