@@ -6,8 +6,9 @@ import (
 	"math/rand"
 	"os"
 	st "rtgo/structs"
-	"time"
 	"sync"
+	"time"
+
 	// progress bar
 	b "github.com/schollz/progressbar/v3"
 )
@@ -15,16 +16,17 @@ import (
 const (
 	// SET IMAGE SIZE
 	ratio = 16.0 / 9.0
-	width = 1920
+	width = 3840
 	// IMAGE OPTIONS
 	aaSamples = 200
-	maxDepth  = 20
+	maxDepth  = 40
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
 	height = int(width / ratio)
 
 	// DIVIDE IMAGE INTO PARTS FOR PARALLEL PROCESSING
 	partDiv = 24 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
+	// 1080p = 24, 1440p = 20, 2160p = 12 or 24
 )
 
 var (
@@ -129,9 +131,9 @@ func main() {
 		for j := 0; j < partDiv; j++ {
 			part := st.ImagePart{
 				StartRow: j * partHeight,
-				EndRow:   (j+1)*partHeight,
+				EndRow:   (j + 1) * partHeight,
 				StartCol: i * partWidth,
-				EndCol:   (i+1)*partWidth,
+				EndCol:   (i + 1) * partWidth,
 				I:        i,
 				J:        j,
 			}
@@ -139,10 +141,7 @@ func main() {
 		}
 	}
 
-	// progress bar
-	bar := b.Default(int64(height * width))
-
-	maxConcurrentParts := 8
+	maxConcurrentParts := 16
 	activeParts := make(chan struct{}, maxConcurrentParts)
 	for i := 0; i < maxConcurrentParts; i++ {
 		activeParts <- struct{}{}
@@ -159,8 +158,10 @@ func main() {
 	fmt.Println("Number of parts:", numParts)
 	fmt.Println("Part size:", partWidth, "x", partHeight, "Area:", partArea)
 	fmt.Println("Number of concurrent parts:", maxConcurrentParts)
-	fmt.Println("Buffer size:", len(buf), "x", len(buf[0]))
 	fmt.Println("\nRendering...")
+
+	// progress bar
+	bar := b.Default(int64(height * width))
 
 	go func() {
 		for range parts {
@@ -208,8 +209,6 @@ func main() {
 
 }
 
-
-
 // for j := height - 1; j >= 0; j-- {
 // 	for i := 0; i < width; i++ {
 // 		col := st.Vec3{}
@@ -224,7 +223,6 @@ func main() {
 // 		col = col.DivScalar(float64(aaSamples))
 
 // 		st.WriteColor(f, col, exposure)
-
 
 // 		}
 // 	}
