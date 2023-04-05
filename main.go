@@ -16,17 +16,18 @@ import (
 const (
 	// SET IMAGE SIZE
 	ratio = 16.0 / 9.0
-	width = 3840
+	width = 400
 	// IMAGE OPTIONS
-	aaSamples = 200
+	aaSamples = 50
 	maxDepth  = 40
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
 	height = int(width / ratio)
 
 	// DIVIDE IMAGE INTO PARTS FOR PARALLEL PROCESSING
-	partDiv = 24 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
+	partDiv = 5 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
 	// 1080p = 24, 1440p = 20, 2160p = 12 or 24
+	// 400w = 4, 800w = 10
 )
 
 var (
@@ -141,10 +142,11 @@ func main() {
 		}
 	}
 
-	maxConcurrentParts := 16
-	activeParts := make(chan struct{}, maxConcurrentParts)
+	maxConcurrentParts := 12
+	// add the max number of parts to active parts initially
+	activeParts := make(chan bool, maxConcurrentParts)
 	for i := 0; i < maxConcurrentParts; i++ {
-		activeParts <- struct{}{}
+		activeParts <- true
 	}
 
 	// print info about the image
@@ -163,16 +165,21 @@ func main() {
 	// progress bar
 	bar := b.Default(int64(height * width))
 
+	// asynchronously, wait for there to be a value in doneCh for each part, then add a new part into active parts
 	go func() {
 		for range parts {
 			<-doneCh
-			activeParts <- struct{}{}
+			activeParts <- true
 		}
 	}()
+
 	wg := sync.WaitGroup{}
 	for _, part := range parts {
+		// wait for a signal to be in active parts, if there is remove it
 		<-activeParts
+		// add thread to waitgroup
 		wg.Add(1)
+		// asynchronously compute the pixels in that part
 		go func(part st.ImagePart) {
 			// fmt.Println("\nStarting part", part.I, part.J, part)
 			for j := part.StartRow; j < part.EndRow; j++ {
@@ -185,17 +192,18 @@ func main() {
 						col = col.Add(color(&r, &world, maxDepth))
 					}
 					col = col.DivScalar(float64(aaSamples))
-
+					// add output to image buffer
 					buf[j][i] = col
 					bar.Add(1)
 				}
 			}
 			// fmt.Println("\nFinished part", part.I, part.J, part)
-
+			// signal that the part is done, allowing another part to be dispatched
 			doneCh <- true
 			wg.Done()
 		}(part)
 	}
+	// wait for all threads to finish, without this some pixels are left blank
 	wg.Wait()
 	// write pixels from buffer to file in correct order
 	for j := height - 1; j >= 0; j-- {
