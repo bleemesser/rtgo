@@ -7,7 +7,7 @@ import (
 	"os"
 	st "rtgo/structs"
 	"time"
-
+	"sync"
 	// progress bar
 	b "github.com/schollz/progressbar/v3"
 )
@@ -18,13 +18,13 @@ const (
 	width = 1920
 	// IMAGE OPTIONS
 	aaSamples = 200
-	maxDepth  = 10
+	maxDepth  = 20
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
 	height = int(width / ratio)
 
 	// DIVIDE IMAGE INTO PARTS FOR PARALLEL PROCESSING
-	partDiv = 12 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
+	partDiv = 24 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
 )
 
 var (
@@ -111,29 +111,36 @@ func main() {
 
 	fmt.Fprintf(f, "P3\n%d %d\n255\n", width, height)
 
-	buf := make([]st.Vec3, width*height)
+	// 2d array of pixels as buf
+	buf := make([][]st.Vec3, height)
+	for i := range buf {
+		buf[i] = make([]st.Vec3, width)
+	}
 
-	pixelCh := make(chan st.Vec3, width*height)
 	doneCh := make(chan bool)
 
 	partHeight := height / partDiv
 	partWidth := width / partDiv
-
-	numParts := (height * width) / (partHeight * partWidth)
+	partArea := partHeight * partWidth
+	numParts := partDiv * partDiv
 
 	parts := make([]st.ImagePart, numParts)
-	for i := 0; i < numParts; i++ {
-		parts[i] = st.ImagePart{
-			StartRow: i * partHeight,
-			EndRow:   (i + 1) * partHeight,
-			StartCol: 0,
-			EndCol:   i * partWidth,
-			Index:    i,
+	for i := 0; i < partDiv; i++ {
+		for j := 0; j < partDiv; j++ {
+			part := st.ImagePart{
+				StartRow: j * partHeight,
+				EndRow:   (j+1)*partHeight,
+				StartCol: i * partWidth,
+				EndCol:   (i+1)*partWidth,
+				I:        i,
+				J:        j,
+			}
+			parts = append(parts, part)
 		}
 	}
 
 	// progress bar
-	bar := b.Default(int64(numParts * partHeight * partWidth))
+	bar := b.Default(int64(height * width))
 
 	maxConcurrentParts := 8
 	activeParts := make(chan struct{}, maxConcurrentParts)
@@ -142,7 +149,7 @@ func main() {
 	}
 
 	// print info about the image
-	fmt.Println("Image size:", width, "x", height)
+	fmt.Println("\nImage size:", width, "x", height)
 	fmt.Println("Samples per pixel:", aaSamples)
 	fmt.Println("Rays: ", width*height*aaSamples)
 	fmt.Println("Number of objects:", len(objects))
@@ -150,9 +157,9 @@ func main() {
 	fmt.Println("Aperture:", aperture)
 	fmt.Println("Focus distance:", focusDist)
 	fmt.Println("Number of parts:", numParts)
-	fmt.Println("Part size:", partWidth, "x", partHeight)
+	fmt.Println("Part size:", partWidth, "x", partHeight, "Area:", partArea)
 	fmt.Println("Number of concurrent parts:", maxConcurrentParts)
-
+	fmt.Println("Buffer size:", len(buf), "x", len(buf[0]))
 	fmt.Println("\nRendering...")
 
 	go func() {
@@ -160,14 +167,14 @@ func main() {
 			<-doneCh
 			activeParts <- struct{}{}
 		}
-		close(pixelCh)
 	}()
-
+	wg := sync.WaitGroup{}
 	for _, part := range parts {
 		<-activeParts
+		wg.Add(1)
 		go func(part st.ImagePart) {
-			fmt.Println("\nStarting part", part.Index, part)
-			for j := part.EndRow - 1; j >= part.StartRow; j-- {
+			// fmt.Println("\nStarting part", part.I, part.J, part)
+			for j := part.StartRow; j < part.EndRow; j++ {
 				for i := part.StartCol; i < part.EndCol; i++ {
 					col := st.Vec3{}
 					for s := 0; s < aaSamples; s++ {
@@ -177,26 +184,31 @@ func main() {
 						col = col.Add(color(&r, &world, maxDepth))
 					}
 					col = col.DivScalar(float64(aaSamples))
-					// store pixel in buffer
-					buf[j*width+i] = col
+
+					buf[j][i] = col
+					bar.Add(1)
 				}
 			}
-			bar.Add(partHeight * partWidth)
-			fmt.Println("\nFinished part", part.Index, part)
+			// fmt.Println("\nFinished part", part.I, part.J, part)
+
 			doneCh <- true
+			wg.Done()
 		}(part)
 	}
-
+	wg.Wait()
 	// write pixels from buffer to file in correct order
 	for j := height - 1; j >= 0; j-- {
 		for i := 0; i < width; i++ {
-			col := buf[j*width+i]
+			col := buf[j][i]
 			st.WriteColor(f, col, exposure)
 		}
 	}
 
 	fmt.Println("Render Time:", time.Since(start))
+
 }
+
+
 
 // for j := height - 1; j >= 0; j-- {
 // 	for i := 0; i < width; i++ {
@@ -213,7 +225,6 @@ func main() {
 
 // 		st.WriteColor(f, col, exposure)
 
-// 		bar.Add(1)
 
+// 		}
 // 	}
-// }

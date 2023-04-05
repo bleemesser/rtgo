@@ -5,5 +5,6 @@ type ImagePart struct {
 	EndRow   int
 	StartCol int
 	EndCol   int
-	Index    int
+	I        int
+	J        int
 }
