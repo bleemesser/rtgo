@@ -17,7 +17,7 @@ import (
 const (
 	// SET IMAGE SIZE
 	ratio = 16.0 / 9.0
-	width = 1920
+	width = 2560
 	// IMAGE OPTIONS
 	aaSamples = 100
 	maxDepth  = 40
@@ -26,7 +26,7 @@ const (
 	height = int(width / ratio)
 
 	// DIVIDE IMAGE INTO PARTS FOR PARALLEL PROCESSING
-	partDiv = 24 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
+	partDiv = 20 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
 	// 1080p = 24, 1440p = 20, 2160p = 12 or 24
 	// 400w = 4, 800w = 10
 
@@ -139,7 +139,7 @@ func main() {
 		}
 	}
 
-	maxConcurrentParts := 12
+	maxConcurrentParts := 16
 	// add the max number of parts to active parts initially
 	activeParts := make(chan bool, maxConcurrentParts)
 	for i := 0; i < maxConcurrentParts; i++ {
