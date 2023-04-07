@@ -19,7 +19,7 @@ const (
 	ratio = 16.0 / 9.0
 	width = 1920
 	// IMAGE OPTIONS
-	aaSamples = 100
+	aaSamples = 150
 	maxDepth  = 40
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
@@ -27,12 +27,12 @@ const (
 
 	// DIVIDE IMAGE INTO PARTS FOR PARALLEL PROCESSING
 	partDiv = 24 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
-	// 1080p = 24, 1440p = 20, 2160p = 12 or 24
+	// 720p = 20, 1080p = 24, 1440p = 20, 2160p = 12 or 24
 	// 400w = 4, 800w = 10
 
 	// FILE SETTINGS
 	outputAsPng = true
-	fileName = "out" // don't add the file extension
+	fileName    = "out" // don't add the file extension
 )
 
 var (
@@ -51,10 +51,14 @@ var (
 
 	objects = []st.Hittable{
 		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5})),
-		st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)),
+		st.NewSphere(st.Vec3{X: 0, Y: 1, Z: -1.1}, 1, st.NewLambertian(st.Vec3{X: 1.0, Y: 0, Z: 0.01})),
+		// white sphere next to the other one
+		st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 1.1}, 1, st.NewLambertian(st.Vec3{X: 1, Y: 1, Z: 1})),
+		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)),
 	}
 
-	world = randomScene()
+	world = st.World{Objects: objects}
+	// world = randomScene()
 )
 
 func color(r *st.Ray, h st.Hittable, depth int) st.Vec3 {
@@ -89,22 +93,22 @@ func randomScene() st.World {
 
 			if center.Sub(st.Vec3{X: 4, Y: 0.2, Z: 0}).Length() > 0.9 {
 				switch {
-				case chooseMat < 0.6:
+				case chooseMat < 0:
 					albedo := st.RandomVec(0, 1)
 					material = st.NewLambertian(albedo)
-				case chooseMat < 0.75:
+				case chooseMat < 0:
 					albedo := st.RandomVec(0, 1)
-					smoothness := randomFloat(0.1, 1)
+					smoothness := randomFloat(0,1)
 					material = st.NewMetal(albedo, smoothness)
 				default:
-					albedo := st.RandomVec(0, 1)
+					albedo := st.RandomVec(0.1,1)
 					material = st.NewTransparent(albedo, 1.5)
 				}
 				objects = append(objects, st.NewSphere(center, 0.2, material))
 			}
 		}
 	}
-
+	fmt.Println(objects[1])
 	return st.World{Objects: objects}
 }
 
@@ -157,6 +161,10 @@ func main() {
 	fmt.Println("Number of parts:", numParts)
 	fmt.Println("Part size:", partWidth, "x", partHeight, "Area:", partArea)
 	fmt.Println("Number of concurrent parts:", maxConcurrentParts)
+	if height*width%partArea != 0 {
+		// in red, print a warning
+		fmt.Println("\033[31mWarning: image size is not divisible by part size! There will be missing pixels!\033[0m")
+	}
 	fmt.Println("\nRendering...")
 
 	// progress bar
@@ -204,7 +212,7 @@ func main() {
 	wg.Wait()
 	// write pixels from buffer to file in correct order
 	if outputAsPng {
-		ut.ArrayToPng(buf, fileName + ".png", exposure)
+		ut.ArrayToPng(buf, fileName+".png", exposure)
 	} else {
 		f, err := os.Create(fileName + ".ppm")
 		if err != nil {
@@ -212,7 +220,7 @@ func main() {
 			os.Exit(1)
 		}
 		defer f.Close()
-	
+
 		fmt.Fprintf(f, "P3\n%d %d\n255\n", width, height)
 		for j := height - 1; j >= 0; j-- {
 			for i := 0; i < width; i++ {
