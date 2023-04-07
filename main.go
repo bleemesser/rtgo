@@ -17,16 +17,16 @@ import (
 const (
 	// SET IMAGE SIZE
 	ratio = 16.0 / 9.0
-	width = 1280
+	width = 240
 	// IMAGE OPTIONS
-	aaSamples = 50
+	aaSamples = 100
 	maxDepth  = 50
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
 	height = int(width / ratio)
 
 	// DIVIDE IMAGE INTO PARTS FOR PARALLEL PROCESSING
-	partDiv = 20 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
+	partDiv = 5 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
 	// 720p = 20, 1080p = 24, 1440p = 20, 2160p = 12 or 24
 	// 400w = 5, 800w = 10
 
@@ -50,14 +50,17 @@ var (
 	camera = st.NewCamera(cameraLookFrom, cameraLookAt, cameraUp, 20, ratio, focusDist, aperture)
 
 	backgroundColor = st.Vec3{X: 0,Y: 0,Z: 0}
-	useBackgroundGradient = true
+	useBackgroundGradient = false
+
 	objects = []st.Hittable{
 		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5})),
 		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: -1.1}, 1, st.NewLambertian(st.Vec3{X: 1.0, Y: 0, Z: 0.01})),
-		// st.NewSphere(st.Vec3{X: 0, Y: 100, Z: 1.1}, 10, st.NewDiffuseLight(st.Vec3{X: 1.0, Y: 1.0, Z: 1.0}, 100.0)),
+		// st.NewSphere(st.Vec3{X: 0, Y: 3, Z: 0}, 0.5, st.NewDiffuseLight(st.Vec3{X: 1.0, Y: 1.0, Z: 1.0}, 2.0)),
 		// white sphere next to the other one
 		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 1.1}, 1, st.NewLambertian(st.Vec3{X: 1, Y: 1, Z: 1})),
 		st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)),
+		// st.NewXYRect(-1,1,0.5,1.5,-2, st.NewDiffuseLight(st.Vec3{X: 0.7,Y: 0.6,Z: 0.99}, 1)),
+		st.NewXYRect(-20,20,0,30,-20, st.NewDiffuseLight(st.Vec3{X: 1,Y: 1,Z: 1}, 6)),
 	}
 
 	// world = st.World{Objects: objects}
@@ -100,12 +103,12 @@ func randomScene() st.World {
 
 			if center.Sub(st.Vec3{X: 4, Y: 0.2, Z: 0}).Length() > 0.9 {
 				switch {
-				case chooseMat < 0.2:
-					material = st.NewDiffuseLight(st.RandomVec(0, 1), randomFloat(2,4))
-				case chooseMat < 0.4:
+				case chooseMat < 0.15:
+					material = st.NewDiffuseLight(st.RandomVec(0, 1), randomFloat(1,3))
+				case chooseMat < 0.3:
 					albedo := st.RandomVec(0, 1)
 					material = st.NewLambertian(albedo)
-				case chooseMat < 0.6:
+				case chooseMat < 0.5:
 					albedo := st.RandomVec(0, 1)
 					smoothness := randomFloat(0, 1)
 					material = st.NewMetal(albedo, smoothness)
@@ -177,6 +180,7 @@ func main() {
 
 	// progress bar
 	bar := b.Default(int64(height * width))
+	b.OptionSetItsString("px")
 
 	// asynchronously, wait for there to be a value in doneCh for each part, then add a new part into active parts
 	go func() {
