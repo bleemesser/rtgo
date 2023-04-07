@@ -19,3 +19,7 @@ func (m Lambertian) Scatter(in Ray, rec HitRef) (bool, *Ray, Vec3) {
 	attenuation := &m.Albedo
 	return true, scattered, *attenuation
 }
+
+func (m Lambertian) Emitted(u, v float64, p Vec3) Vec3 {
+	return Vec3{}
+}

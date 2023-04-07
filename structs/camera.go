@@ -52,5 +52,7 @@ func (c *Camera) GetRay(u float64, v float64) Ray {
 	return Ray{
 		Origin: c.Origin.AddScalar(offset),
 		Direction: c.LowerLeftCorner.Add(c.Horizontal.MulScalar(u)).Add(c.Vertical.MulScalar(v)).Sub(c.Origin).SubScalar(offset),
+		U: u,
+		V: v,
 	}
 }

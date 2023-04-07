@@ -5,6 +5,7 @@ type HitRef struct {
 	P, Normal Vec3
 	Mat Material
 	FrontFace bool
+	U, V float64
 }
 
 type Hittable interface {

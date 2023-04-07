@@ -22,3 +22,7 @@ func (m Metal) Scatter(in Ray, rec HitRef) (bool, *Ray, Vec3) {
 	}
 	return false, scattered, attenuation // questionable
 }
+
+func (m Metal) Emitted(u, v float64, p Vec3) Vec3 {
+	return Vec3{}
+}

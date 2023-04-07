@@ -2,6 +2,7 @@ package structs
 
 type Ray struct {
 	Origin, Direction Vec3
+	U, V float64
 }
 
 func NewRay(origin Vec3, direction Vec3) *Ray {

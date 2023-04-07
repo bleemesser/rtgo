@@ -46,3 +46,7 @@ func (t Transparent) Scatter(in Ray, rec HitRef) (bool, *Ray, Vec3) {
 	scattered := NewRay(rec.P, dir)
 	return true, scattered, attenuation
 }
+
+func (t Transparent) Emitted(u, v float64, p Vec3) Vec3 {
+	return Vec3{}
+}
