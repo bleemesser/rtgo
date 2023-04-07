@@ -17,7 +17,7 @@ import (
 const (
 	// SET IMAGE SIZE
 	ratio = 16.0 / 9.0
-	width = 1920
+	width = 2560
 	// IMAGE OPTIONS
 	aaSamples = 150
 	maxDepth  = 40
@@ -143,7 +143,7 @@ func main() {
 		}
 	}
 
-	maxConcurrentParts := 12
+	maxConcurrentParts := 16
 	// add the max number of parts to active parts initially
 	activeParts := make(chan bool, maxConcurrentParts)
 	for i := 0; i < maxConcurrentParts; i++ {
