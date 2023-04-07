@@ -180,7 +180,6 @@ func main() {
 
 	// progress bar
 	bar := b.Default(int64(height * width))
-	b.OptionSetItsString("px")
 
 	// asynchronously, wait for there to be a value in doneCh for each part, then add a new part into active parts
 	go func() {
