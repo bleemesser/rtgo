@@ -17,7 +17,7 @@ import (
 const (
 	// SET IMAGE SIZE
 	ratio = 16.0 / 9.0
-	width = 2560
+	width = 1920
 	// IMAGE OPTIONS
 	aaSamples = 150
 	maxDepth  = 40
