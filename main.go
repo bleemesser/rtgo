@@ -16,17 +16,17 @@ import (
 
 const (
 	// SET IMAGE SIZE
-	ratio = 16.0 / 9.0
-	width = 1920
+	ratio = 1.0/1.0
+	width = 400
 	// IMAGE OPTIONS
-	aaSamples = 1000
-	maxDepth  = 50
+	aaSamples = 200
+	maxDepth  = 5
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
 	height = int(width / ratio)
 
 	// DIVIDE IMAGE INTO PARTS FOR PARALLEL PROCESSING
-	partDiv = 24 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
+	partDiv = 10 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
 	// 720p = 20, 1080p = 24, 1440p = 20, 2160p = 12 or 24
 	// 400w = 5, 800w = 10
 
@@ -40,20 +40,20 @@ var (
 	white = st.Vec3{X: 1.0, Y: 1.0, Z: 1.0}
 	blue  = st.Vec3{X: 0.5, Y: 0.7, Z: 1.0}
 
-	cornellRed   = st.Vec3{X: 0.65, Y: 0.05, Z: 0.05}
-	cornellWhite = st.Vec3{X: 0.73, Y: 0.73, Z: 0.73}
-	cornellGreen = st.Vec3{X: 0.12, Y: 0.45, Z: 0.15}
+	// cornellRed   = st.Vec3{X: 0.65, Y: 0.05, Z: 0.05}
+	// cornellWhite = st.Vec3{X: 0.73, Y: 0.73, Z: 0.73}
+	// cornellGreen = st.Vec3{X: 0.12, Y: 0.45, Z: 0.15}
 
 	// SET CAMERA FOV
-	cameraUp = st.Vec3{X: 0, Y: 1, Z: 0}
-	// cameraLookFrom         = st.Vec3{X: 10, Y: 0.9, Z: 0.8}
-	// cameraLookAt           = st.Vec3{X: 0, Y: 1, Z: 0}
-	// vFov                   = 20.0
-	cameraLookFrom         = st.Vec3{X: 380, Y: 278, Z: -800}
-	cameraLookAt           = st.Vec3{X: 278, Y: 278, Z: 0}
-	vFov                   = 40.0
-	focusDist              = cameraLookFrom.Sub(cameraLookAt).Length()
-	aperture       float64 = 0.04
+	cameraUp       = st.Vec3{X: 0, Y: 1, Z: 0}
+	cameraLookFrom = st.Vec3{X: 0, Y: 15, Z: 60}
+	cameraLookAt   = st.Vec3{X: 0, Y: 6, Z: 0}
+	vFov           = 20.0
+	// cameraLookFrom         = st.Vec3{X: 380, Y: 278, Z: -800}
+	// cameraLookAt           = st.Vec3{X: 278, Y: 278, Z: 0}
+	// vFov                   = 40.0
+	focusDist         = cameraLookFrom.Sub(cameraLookAt).Length()
+	aperture  float64 = 0.04
 
 	camera = st.NewCamera(cameraLookFrom, cameraLookAt, cameraUp, vFov, ratio, focusDist, aperture)
 
@@ -61,46 +61,18 @@ var (
 	useBackgroundGradient = false
 
 	objects = []st.Hittable{
-		// st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5})), // floor
-		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)), // centered mirror sphere
-		// st.NewXYRect(-20, 20, 0, 30, -20, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)), // large rectangle light
-
-		// st.NewYZRect(0, 555, 0, 555, 555, st.NewLambertian(cornellGreen)), // left wall
-		// st.NewYZRect(0, 555, 0, 555, 0, st.NewLambertian(cornellRed)),     // right wall
-		// st.NewXZRect(0, 555, 0, 555, 0, st.NewLambertian(cornellWhite)),   // ceiling
-		// st.NewXZRect(0, 555, 0, 555, 555, st.NewLambertian(cornellWhite)), // floor
-		// // define the back wall as a white diffuse material
-		// st.NewXYRect(0, 555, 0, 555, 555, st.NewLambertian(cornellWhite)), // back wall
-
-		// st.NewXZRect(213, 343, 227, 332, 554, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 15)), // light
-
-		// lambertian sphere in the box
-		st.NewSphere(st.Vec3{X: 190, Y: 90, Z: 190}, 90, st.NewLambertian(st.Vec3{X: 0.73, Y: 0.73, Z: 0.73})),
-
-		// position a light sphere up and to the left of the box, out of frame
-		st.NewSphere(st.Vec3{X: 300, Y: 800, Z: -300}, 90, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 100)),
-
-	}
-	// rectangular prisms are a list of planar faces so need to be defined and added to the world separately
-	rectangularPrisms = []st.RectangularPrism{
-		// create two rectangular prisms inside the box
-		// st.NewRectangularPrism(st.Vec3{X: 130, Y: 0, Z: 65}, st.Vec3{X: 295, Y: 165, Z: 230}, st.NewTransparent(blue, 1.5)),
-		// st.NewRectangularPrism(st.Vec3{X: 265, Y: 0, Z: 295}, st.Vec3{X: 430, Y: 330, Z: 460}, st.NewLambertian(st.Vec3{X: 0.73, Y: 0.73, Z: 0.73})),
-
-		// left wall
-		st.NewRectangularPrism(st.Vec3{X: -20, Y: 0, Z: 0}, st.Vec3{X: 0, Y: 555, Z: 555}, st.NewLambertian(cornellGreen)),
-		// right wall
-		st.NewRectangularPrism(st.Vec3{X: 555, Y: 0, Z: 0}, st.Vec3{X: 575, Y: 555, Z: 555}, st.NewLambertian(cornellRed)),
-		// ceiling
-		st.NewRectangularPrism(st.Vec3{X: 0, Y: 555, Z: 0}, st.Vec3{X: 555, Y: 575, Z: 555}, st.NewLambertian(cornellWhite)),
 		// floor
-		st.NewRectangularPrism(st.Vec3{X: 0, Y: -20, Z: 0}, st.Vec3{X: 555, Y: 0, Z: 555}, st.NewLambertian(cornellWhite)),
-		// back wall
-		st.NewRectangularPrism(st.Vec3{X: 0, Y: 0, Z: 555}, st.Vec3{X: 555, Y: 555, Z: 575}, st.NewLambertian(cornellWhite)),
-		// light
-		st.NewRectangularPrism(st.Vec3{X: 213, Y: 554, Z: 227}, st.Vec3{X: 343, Y: 555, Z: 332}, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 15)),
+		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewMetal(st.Vec3{1,1,1},0.0)), // floor
+		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)), // centered mirror sphere
+		// st.NewRectangularPlane(st.Vec3{-20,-20,-20}, st.Vec3{-20,60,-20},st.Vec3{-20,-20,20}, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)), // large rectangle light
+		// light sphere
+		st.NewSphere(st.Vec3{X: 20, Y: 15, Z: 35}, 10, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)),
+		st.NewSphere(st.Vec3{X: -20, Y: 15, Z: 35}, 10, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 3)),
 
+		// st.NewRectangularPrism(st.NewRectangularPlane(st.Vec3{X: 0,Y: 2,Z: 0}, st.Vec3{X: 1,Y: 2,Z: 0}, st.Vec3{X: 0,Y: 2,Z: 1}, st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5})), 2),
+		st.NewSphere(st.Vec3{X: 0, Y: 5, Z: 0}, 1, st.NewDiffuseLight(st.Vec3{X: 0.99, Y: 0, Z: 0}, 2)),
 	}
+
 )
 
 func color(r *st.Ray, h st.Hittable, depth int) st.Vec3 {
@@ -161,10 +133,17 @@ func randomScene() st.World {
 func main() {
 	start := time.Now()
 
-	// finish creating the world by adding any rectangular prisms defined in the scene
-	for _, prism := range rectangularPrisms {
-		objects = st.CreateRectangularPrism(objects, prism)
+	mat := st.NewLambertian(st.Vec3{X: 0.7, Y: 0.7, Z: 0.7})
+	triangles := ut.LoadOBJFile("knight.obj", mat)
+	for _, t := range triangles {
+		objects = append(objects, t)
+		// make a small sphere at each vertex
+		// objects = append(objects, st.NewSphere(t.A, 1, st.NewLambertian(st.Vec3{X: 1, Y: 0, Z: 0})))
+		// objects = append(objects, st.NewSphere(t.B, 1, st.NewLambertian(st.Vec3{X: 0, Y: 1, Z: 0})))
+		// objects = append(objects, st.NewSphere(t.C, 1, st.NewLambertian(st.Vec3{X: 0, Y: 0, Z: 1})))
 	}
+
+
 	world := st.World{Objects: objects}
 	// world = randomScene()
 
@@ -219,7 +198,10 @@ func main() {
 		fmt.Println("\033[31mWarning: image size is not divisible by part size! There will be missing pixels!\033[0m")
 	}
 	fmt.Println("\nRendering...")
-
+	if aaSamples <= 0 {
+		fmt.Println("0 or fewer aaSamples specified, exiting")
+		os.Exit(0)
+	}
 	// progress bar
 	bar := b.Default(int64(height * width))
 

@@ -1,127 +1,63 @@
 package structs
 
-type XYRect struct {
-	X0, X1, Y0, Y1, K float64
-	Mat               Material
-}
+// type RectangularPlane struct {
+// 	// Vertices
+// 	A, B, C, D Vec3
+// 	// Material
+// 	Mat Material
+// }
 
-func NewXYRect(x0, x1, y0, y1, k float64, mat Material) *XYRect {
-	return &XYRect{
-		X0:  x0,
-		X1:  x1,
-		Y0:  y0,
-		Y1:  y1,
-		K:   k,
-		Mat: mat,
-	}
-}
+// func NewRectangularPlane(a, b, c Vec3, mat Material) *RectangularPlane {
+// 	d := a.Add(c.Sub(b))
+// 	points := []Vec3{a, b, c, d}
+// 	points = OrderPointsClockwise(points)
+// 	a = points[0]
+// 	b = points[1]
+// 	c = points[2]
+// 	d = points[3]
 
-func (rect *XYRect) Hit(r *Ray, tMin float64, tMax float64) (bool, HitRef) {
-	t := (rect.K - r.Origin.Z) / r.Direction.Z
-	if t < tMin || t > tMax {
-		return false, HitRef{}
-	}
-	x := r.Origin.X + t*r.Direction.X
-	y := r.Origin.Y + t*r.Direction.Y
+// 	return &RectangularPlane{A: a, B: b, C: c, D: d, Mat: mat}
+// }
 
-	if x < rect.X0 || x > rect.X1 || y < rect.Y0 || y > rect.Y1 {
-		return false, HitRef{}
-	}
-	rec := HitRef{Mat: rect.Mat}
-	rec.U = (x - rect.X0) / (rect.X1 - rect.X0)
-	rec.V = (y - rect.Y0) / (rect.Y1 - rect.Y0)
-	rec.T = t
-	outwardNormal := Vec3{0, 0, 1}
-	rec.SetFaceNormal(r, outwardNormal)
-	rec.Mat = rect.Mat
-	rec.P = r.PointAt(t)
-	return true, rec
-}
+// func MakeRectangularPlane(a,b,c,d Vec3, mat Material) *RectangularPlane {
+// 	points := []Vec3{a, b, c, d}
+// 	points = OrderPointsClockwise(points)
+// 	a = points[0]
+// 	b = points[1]
+// 	c = points[2]
+// 	d = points[3]
+// 	return &RectangularPlane{A: a, B: b, C: c, D: d, Mat: mat}
+// }
 
-func (rect *XYRect) GetPos() Vec3 {
-	return Vec3{}
-}
+// func (rect *RectangularPlane) Hit(r *Ray, tMin, tMax float64) (bool, HitRef) {
+// 	tri1 := NewTriangle(rect.A, rect.B, rect.C, rect.Mat)
+// 	tri2 := NewTriangle(rect.A, rect.C, rect.D, rect.Mat)
 
-type XZRect struct {
-	X0, X1, Z0, Z1, K float64
-	Mat               Material
-}
+// 	hit1, hitRef1 := tri1.Hit(r, tMin, tMax)
+// 	hit2, hitRef2 := tri2.Hit(r, tMin, tMax)
 
-func NewXZRect(x0, x1, z0, z1, k float64, mat Material) *XZRect {
-	return &XZRect{
-		X0:  x0,
-		X1:  x1,
-		Z0:  z0,
-		Z1:  z1,
-		K:   k,
-		Mat: mat,
-	}
-}
+// 	if hit1 && hit2 {
+// 		if hitRef1.T < hitRef2.T {
+// 			return true, hitRef1
+// 		} else {
+// 			return true, hitRef2
+// 		}
+// 	}
+// 	if hit1 {
+// 		return true, hitRef1
+// 	}
+// 	if hit2 {
+// 		return true, hitRef2
+// 	}
+// 	return false, HitRef{}
 
-func (rect *XZRect) Hit(r *Ray, tMin float64, tMax float64) (bool, HitRef) {
-	t := (rect.K - r.Origin.Y) / r.Direction.Y
-	if t < tMin || t > tMax {
-		return false, HitRef{}
-	}
-	x := r.Origin.X + t*r.Direction.X
-	z := r.Origin.Z + t*r.Direction.Z
 
-	if x < rect.X0 || x > rect.X1 || z < rect.Z0 || z > rect.Z1 {
-		return false, HitRef{}
-	}
-	rec := HitRef{Mat: rect.Mat}
-	rec.U = (x - rect.X0) / (rect.X1 - rect.X0)
-	rec.V = (z - rect.Z0) / (rect.Z1 - rect.Z0)
-	rec.T = t
-	outwardNormal := Vec3{0, 1, 0}
-	rec.SetFaceNormal(r, outwardNormal)
-	rec.Mat = rect.Mat
-	rec.P = r.PointAt(t)
-	return true, rec
-}
+// }
 
-func (rect *XZRect) GetPos() Vec3 {
-	return Vec3{}
-}
+// func (r *RectangularPlane) GetPos() Vec3 {
+// 	return r.A
+// }
 
-type YZRect struct {
-	Y0, Y1, Z0, Z1, K float64
-	Mat               Material
-}
-
-func NewYZRect(y0, y1, z0, z1, k float64, mat Material) *YZRect {
-	return &YZRect{
-		Y0:  y0,
-		Y1:  y1,
-		Z0:  z0,
-		Z1:  z1,
-		K:   k,
-		Mat: mat,
-	}
-}
-
-func (rect *YZRect) Hit(r *Ray, tMin float64, tMax float64) (bool, HitRef) {
-	t := (rect.K - r.Origin.X) / r.Direction.X
-	if t < tMin || t > tMax {
-		return false, HitRef{}
-	}
-	y := r.Origin.Y + t*r.Direction.Y
-	z := r.Origin.Z + t*r.Direction.Z
-
-	if y < rect.Y0 || y > rect.Y1 || z < rect.Z0 || z > rect.Z1 {
-		return false, HitRef{}
-	}
-	rec := HitRef{Mat: rect.Mat}
-	rec.U = (y - rect.Y0) / (rect.Y1 - rect.Y0)
-	rec.V = (z - rect.Z0) / (rect.Z1 - rect.Z0)
-	rec.T = t
-	outwardNormal := Vec3{1, 0, 0}
-	rec.SetFaceNormal(r, outwardNormal)
-	rec.Mat = rect.Mat
-	rec.P = r.PointAt(t)
-	return true, rec
-}
-
-func (rect *YZRect) GetPos() Vec3 {
-	return Vec3{}
-}
+// func (plane *RectangularPlane) Normal() Vec3 {
+//     return plane.B.Sub(plane.A).Cross(plane.C.Sub(plane.A)).Normalize()
+// }
