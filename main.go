@@ -17,16 +17,16 @@ import (
 const (
 	// SET IMAGE SIZE
 	ratio = 16.0/9.0
-	width = 1280
+	width = 2560
 	// IMAGE OPTIONS
-	aaSamples = 1000
+	aaSamples = 10
 	maxDepth  = 50
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
 	height = int(width / ratio)
 
 	// DIVIDE IMAGE INTO PARTS FOR PARALLEL PROCESSING
-	partDiv = 20 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
+	partDiv = 10 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
 	// 720p = 20, 1080p = 24, 1440p = 20, 2160p = 12 or 24
 	// 400w = 5, 800w = 10
 
@@ -62,15 +62,15 @@ var (
 
 	objects = []st.Hittable{
 		// floor
-		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewMetal(st.Vec3{X: 1, Y: 1, Z: 1}, 0.0)), // floor
-		st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)), // centered mirror sphere
+		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewLambertian(st.Vec3{X: 1,Y: 1,Z: 1})), // floor
+		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)), // centered mirror sphere
 		// st.NewRectangularPlane(st.Vec3{-20,-20,-20}, st.Vec3{-20,60,-20},st.Vec3{-20,-20,20}, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)), // large rectangle light
 		// light sphere
-		st.NewSphere(st.Vec3{X: 30, Y: 65, Z: 35}, 22, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 10)),
-		st.NewSphere(st.Vec3{X: -30, Y: 25, Z: 35}, 12, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)),
+		st.NewSphere(st.Vec3{X: 30, Y: 15, Z: 65}, 10, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)),
+		// st.NewSphere(st.Vec3{X: -20, Y: 15, Z: 35}, 10, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 3)),
 
 		// st.NewRectangularPrism(st.NewRectangularPlane(st.Vec3{X: 0,Y: 2,Z: 0}, st.Vec3{X: 1,Y: 2,Z: 0}, st.Vec3{X: 0,Y: 2,Z: 1}, st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5})), 2),
-		// st.NewSphere(st.Vec3{X: 0, Y: 5, Z: 0}, 1, st.NewDiffuseLight(st.Vec3{X: 0.99, Y: 0, Z: 0}, 2)),
+		st.NewSphere(st.Vec3{X: 0, Y: 5, Z: 0}, 1, st.NewDiffuseLight(st.Vec3{X: 0.99, Y: 0, Z: 0}, 2)),
 	}
 	// mat = st.NewLambertian(st.Vec3{X: 0.7, Y: 0.7, Z: 0.7})
 	// triangles = ut.LoadOBJFile("knight.obj", mat)
@@ -103,7 +103,7 @@ func randomFloat(min, max float64) float64 {
 
 func randomScene() st.World {
 	var material st.Material
-	span := 20
+	span := 24
 	for a := -span; a < span; a++ {
 		for b := -span; b < span; b++ {
 			chooseMat := rand.Float64()
@@ -113,7 +113,7 @@ func randomScene() st.World {
 				switch {
 				case chooseMat < 0.24:
 					albedo := st.Vec3{X: rand.Float64() * rand.Float64(), Y: rand.Float64() * rand.Float64(), Z: rand.Float64() * rand.Float64()}
-					material = st.NewDiffuseLight(albedo, randomFloat(1.5, 3))
+					material = st.NewDiffuseLight(albedo, randomFloat(1.8, 4))
 				case chooseMat < 0.3:
 					albedo := st.Vec3{X: rand.Float64() * rand.Float64(), Y: rand.Float64() * rand.Float64(), Z: rand.Float64() * rand.Float64()}
 					material = st.NewLambertian(albedo)
@@ -166,7 +166,7 @@ func main() {
 		}
 	}
 
-	maxConcurrentParts := 16
+	maxConcurrentParts := 48 // for zaman!!
 	// add the max number of parts to active parts initially
 	activeParts := make(chan bool, maxConcurrentParts)
 	for i := 0; i < maxConcurrentParts; i++ {
