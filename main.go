@@ -19,14 +19,14 @@ const (
 	ratio = 16.0/9.0
 	width = 2560
 	// IMAGE OPTIONS
-	aaSamples = 10
+	aaSamples = 2000
 	maxDepth  = 50
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
 	height = int(width / ratio)
 
 	// DIVIDE IMAGE INTO PARTS FOR PARALLEL PROCESSING
-	partDiv = 10 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
+	partDiv = 20 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
 	// 720p = 20, 1080p = 24, 1440p = 20, 2160p = 12 or 24
 	// 400w = 5, 800w = 10
 
@@ -46,9 +46,9 @@ var (
 
 	// SET CAMERA FOV
 	cameraUp       = st.Vec3{X: 0, Y: 1, Z: 0}
-	cameraLookFrom = st.Vec3{X: 0, Y: 4, Z: -15}
+	cameraLookFrom = st.Vec3{X: 0, Y: 5, Z: -15}
 	cameraLookAt   = st.Vec3{X: 0, Y: 1, Z: 0}
-	vFov           = 20.0
+	vFov           = 15.0
 	// cameraLookFrom         = st.Vec3{X: 380, Y: 278, Z: -800}
 	// cameraLookAt           = st.Vec3{X: 278, Y: 278, Z: 0}
 	// vFov                   = 40.0
@@ -66,11 +66,11 @@ var (
 		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)), // centered mirror sphere
 		// st.NewRectangularPlane(st.Vec3{-20,-20,-20}, st.Vec3{-20,60,-20},st.Vec3{-20,-20,20}, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)), // large rectangle light
 		// light sphere
-		st.NewSphere(st.Vec3{X: 30, Y: 15, Z: 65}, 10, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)),
+		st.NewSphere(st.Vec3{X: 30, Y: 25, Z: 35}, 12, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 5)),
 		// st.NewSphere(st.Vec3{X: -20, Y: 15, Z: 35}, 10, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 3)),
 
 		// st.NewRectangularPrism(st.NewRectangularPlane(st.Vec3{X: 0,Y: 2,Z: 0}, st.Vec3{X: 1,Y: 2,Z: 0}, st.Vec3{X: 0,Y: 2,Z: 1}, st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5})), 2),
-		st.NewSphere(st.Vec3{X: 0, Y: 5, Z: 0}, 1, st.NewDiffuseLight(st.Vec3{X: 0.99, Y: 0, Z: 0}, 2)),
+		// st.NewSphere(st.Vec3{X: 0, Y: 25, Z: 0}, 1, st.NewDiffuseLight(st.Vec3{X: 0.99, Y: 0, Z: 0}, 2)),
 	}
 	// mat = st.NewLambertian(st.Vec3{X: 0.7, Y: 0.7, Z: 0.7})
 	// triangles = ut.LoadOBJFile("knight.obj", mat)
