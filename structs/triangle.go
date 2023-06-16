@@ -9,7 +9,7 @@ func NewTriangle(a, b, c Vec3, mat Material) *Triangle {
 	return &Triangle{A: a, B: b, C: c, Mat: mat}
 }
 
-func (tri *Triangle) Hit(r *Ray, tMin, tMax float64) (bool, HitRef) {
+func (tri *Triangle) Hit(r *Ray, tMin, tMax float64) (bool, HitRef) {	
 	// Möller–Trumbore intersection algorithm
 	edge1 := tri.B.Sub(tri.A)
 	edge2 := tri.C.Sub(tri.A)
@@ -42,4 +42,19 @@ func (tri *Triangle) Hit(r *Ray, tMin, tMax float64) (bool, HitRef) {
 
 func (t *Triangle) GetPos() Vec3 {
 	return t.A
+}
+
+func (t *Triangle) BoundingBox(time0, time1 float64) (bool, AABB) { // SKETCHY
+	return true, AABB{
+		Min: Vec3{
+			X: min(min(t.A.X, t.B.X), t.C.X),
+			Y: min(min(t.A.Y, t.B.Y), t.C.Y),
+			Z: min(min(t.A.Z, t.B.Z), t.C.Z),
+		},
+		Max: Vec3{
+			X: max(max(t.A.X, t.B.X), t.C.X),
+			Y: max(max(t.A.Y, t.B.Y), t.C.Y),
+			Z: max(max(t.A.Z, t.B.Z), t.C.Z),
+		},
+	}
 }

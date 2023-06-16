@@ -59,6 +59,19 @@ func (v Vec3) Cross(v2 Vec3) Vec3 {
 	return Vec3{v.Y*v2.Z - v.Z*v2.Y, v.Z*v2.X - v.X*v2.Z, v.X*v2.Y - v.Y*v2.X}
 }
 
+func (v Vec3) GetItemByIndex(i int) float64 {
+	switch i {
+	case 0:
+		return v.X
+	case 1:
+		return v.Y
+	case 2:
+		return v.Z
+	default:
+		panic("Vec3 index out of range!")
+	}
+}
+
 func RandomInUnitSphere() Vec3 {
 	p := Vec3{}
 	safetyIterations := 100

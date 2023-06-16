@@ -50,3 +50,10 @@ func (s Sphere) Hit(r *Ray, tMin float64, tMax float64) (bool, HitRef) {
 func (s Sphere) GetPos() Vec3 {
 	return s.Center
 }
+
+func (s Sphere) BoundingBox(time0, time1 float64) (bool, AABB) {
+	return true, AABB{
+		Min: s.Center.Sub(Vec3{s.Radius, s.Radius, s.Radius}),
+		Max: s.Center.Add(Vec3{s.Radius, s.Radius, s.Radius}),
+	}
+}

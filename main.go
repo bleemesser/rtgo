@@ -16,18 +16,18 @@ import (
 
 const (
 	// SET IMAGE SIZE
-	ratio = 16.0/9.0
-	width = 2560
+	ratio = 16.0 / 9.0
+	width = 800
 	// IMAGE OPTIONS
-	aaSamples = 2000
-	maxDepth  = 50
+	aaSamples = 20
+	maxDepth  = 8
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
 	height = int(width / ratio)
 
 	// DIVIDE IMAGE INTO PARTS FOR PARALLEL PROCESSING
-	partDiv = 20 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
-	// 720p = 20, 1080p = 24, 1440p = 20, 2160p = 12 or 24
+	partDiv = 10 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
+	// 720p = 20, 1080p = 24, 1440p = 40, 2160p = 12 or 24
 	// 400w = 5, 800w = 10
 
 	// FILE SETTINGS
@@ -48,7 +48,7 @@ var (
 	cameraUp       = st.Vec3{X: 0, Y: 1, Z: 0}
 	cameraLookFrom = st.Vec3{X: 0, Y: 5, Z: -15}
 	cameraLookAt   = st.Vec3{X: 0, Y: 1, Z: 0}
-	vFov           = 15.0
+	vFov           = 28.0
 	// cameraLookFrom         = st.Vec3{X: 380, Y: 278, Z: -800}
 	// cameraLookAt           = st.Vec3{X: 278, Y: 278, Z: 0}
 	// vFov                   = 40.0
@@ -62,7 +62,7 @@ var (
 
 	objects = []st.Hittable{
 		// floor
-		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewLambertian(st.Vec3{X: 1,Y: 1,Z: 1})), // floor
+		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewLambertian(st.Vec3{X: 1, Y: 1, Z: 1})), // floor
 		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)), // centered mirror sphere
 		// st.NewRectangularPlane(st.Vec3{-20,-20,-20}, st.Vec3{-20,60,-20},st.Vec3{-20,-20,20}, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)), // large rectangle light
 		// light sphere
@@ -103,7 +103,7 @@ func randomFloat(min, max float64) float64 {
 
 func randomScene() st.World {
 	var material st.Material
-	span := 24
+	span := 15
 	for a := -span; a < span; a++ {
 		for b := -span; b < span; b++ {
 			chooseMat := rand.Float64()
@@ -137,7 +137,7 @@ func main() {
 	// objects = append(objects, triangles...)
 	// world := st.World{Objects: objects}
 	world := randomScene()
-
+	world_bvh := st.NewBVHNode(world.Objects, 0, len(world.Objects), 0, 0)
 	// 2d array of pixels as buf
 	buf := make([][]st.Vec3, height)
 	for i := range buf {
@@ -166,7 +166,7 @@ func main() {
 		}
 	}
 
-	maxConcurrentParts := 48 // for zaman!!
+	maxConcurrentParts := 16
 	// add the max number of parts to active parts initially
 	activeParts := make(chan bool, maxConcurrentParts)
 	for i := 0; i < maxConcurrentParts; i++ {
@@ -220,7 +220,7 @@ func main() {
 						u := (float64(i) + rand.Float64()) / float64(width)
 						v := (float64(j) + rand.Float64()) / float64(height)
 						r := camera.GetRay(u, v)
-						col = col.Add(color(&r, &world, maxDepth))
+						col = col.Add(color(&r, &world_bvh, maxDepth))
 					}
 					col = col.DivScalar(float64(aaSamples))
 					// add output to image buffer
