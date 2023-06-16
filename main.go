@@ -16,14 +16,16 @@ import (
 
 const (
 	// SET IMAGE SIZE
-	ratio = 16.0 / 9.0
-	width = 800
+	ratio = 9.0 / 16.0
+	// width = 800
+	height = 1920
 	// IMAGE OPTIONS
-	aaSamples = 20
-	maxDepth  = 8
+	aaSamples = 5000
+	maxDepth  = 50
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
-	height = int(width / ratio)
+	// height = int(width / ratio)
+	width = int(height * ratio)
 
 	// DIVIDE IMAGE INTO PARTS FOR PARALLEL PROCESSING
 	partDiv = 10 // YOUR IMAGE HEIGHT AND WIDTH MUST BE EVENLY DIVISIBLE BY THIS NUMBER
@@ -46,9 +48,9 @@ var (
 
 	// SET CAMERA FOV
 	cameraUp       = st.Vec3{X: 0, Y: 1, Z: 0}
-	cameraLookFrom = st.Vec3{X: 0, Y: 5, Z: -15}
-	cameraLookAt   = st.Vec3{X: 0, Y: 1, Z: 0}
-	vFov           = 28.0
+	cameraLookFrom = st.Vec3{X: 0, Y: 5, Z: -25}
+	cameraLookAt   = st.Vec3{X: 0, Y: 4, Z: 0}
+	vFov           = 50.0
 	// cameraLookFrom         = st.Vec3{X: 380, Y: 278, Z: -800}
 	// cameraLookAt           = st.Vec3{X: 278, Y: 278, Z: 0}
 	// vFov                   = 40.0
@@ -62,11 +64,11 @@ var (
 
 	objects = []st.Hittable{
 		// floor
-		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewLambertian(st.Vec3{X: 1, Y: 1, Z: 1})), // floor
+		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewMetal(st.Vec3{X: 1,Y: 1,Z: 1}, 0.7)), // floor
 		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)), // centered mirror sphere
 		// st.NewRectangularPlane(st.Vec3{-20,-20,-20}, st.Vec3{-20,60,-20},st.Vec3{-20,-20,20}, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)), // large rectangle light
 		// light sphere
-		st.NewSphere(st.Vec3{X: 30, Y: 25, Z: 35}, 12, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 5)),
+		st.NewSphere(st.Vec3{X: 30, Y: 55, Z: 35}, 20, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 10)),
 		// st.NewSphere(st.Vec3{X: -20, Y: 15, Z: 35}, 10, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 3)),
 
 		// st.NewRectangularPrism(st.NewRectangularPlane(st.Vec3{X: 0,Y: 2,Z: 0}, st.Vec3{X: 1,Y: 2,Z: 0}, st.Vec3{X: 0,Y: 2,Z: 1}, st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5})), 2),
@@ -134,9 +136,12 @@ func randomScene() st.World {
 
 func main() {
 	start := time.Now()
-	// objects = append(objects, triangles...)
-	// world := st.World{Objects: objects}
-	world := randomScene()
+
+	triangles := ut.LoadOBJFile("knight.obj", st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5}))
+
+	objects = append(objects, triangles...)
+	world := st.World{Objects: objects}
+	// world := randomScene()
 	world_bvh := st.NewBVHNode(world.Objects, 0, len(world.Objects), 0, 0)
 	// 2d array of pixels as buf
 	buf := make([][]st.Vec3, height)
