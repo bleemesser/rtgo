@@ -14,7 +14,6 @@ func LoadOBJFile(filename string, mat st.Material) []st.Hittable {
 	if err != nil {
 		panic(err)
 	}
-
 	// parse the obj into triangles
 	var triangles []st.Hittable
 	for _, obj := range d.Objects {
