@@ -1,9 +1,10 @@
 module rtgo
 
-go 1.20
+go 1.18
 
 require (
 	github.com/g3n/engine v0.2.0
+	github.com/mitchellh/hashstructure v1.1.0
 	github.com/schollz/progressbar/v3 v3.13.1
 )
 
