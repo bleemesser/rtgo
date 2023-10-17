@@ -35,13 +35,33 @@ func (tri *Triangle) Hit(r *Ray, tMin, tMax float64) (bool, HitRef) {
 		p := r.PointAt(t)
 		// Interpolate normal
 		normal := tri.A.Sub(p).Cross(tri.B.Sub(p)).Normalize()
-		return true, HitRef{T: t, P: p, Normal: normal, Mat: tri.Mat}
+		u2, v2 := tri.GetUV(p)
+		// u2, v2 := u, v
+		return true, HitRef{T: t, P: p, Normal: normal, Mat: tri.Mat, U: u2, V: v2}
 	}
 	return false, HitRef{}
 }
 
 func (t *Triangle) GetPos() Vec3 {
 	return t.A
+}
+
+func (t Triangle) GetUV(p Vec3) (float64, float64) {
+	// Get the barycentric coordinates of the point
+	v0 := t.B.Sub(t.A)
+	v1 := t.C.Sub(t.A)
+	v2 := p.Sub(t.A)
+	d00 := v0.Dot(v0)
+	d01 := v0.Dot(v1)
+	d11 := v1.Dot(v1)
+	d20 := v2.Dot(v0)
+	d21 := v2.Dot(v1)
+	denom := d00*d11 - d01*d01
+	v := (d11*d20 - d01*d21) / denom
+	w := (d00*d21 - d01*d20) / denom
+	u := 1.0 - v - w
+	return u, v
+
 }
 
 func (t *Triangle) BoundingBox(time0, time1 float64) (bool, AABB) { // SKETCHY

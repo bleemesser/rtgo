@@ -1,11 +1,11 @@
 package structs
 
 type Metal struct {
-	Albedo     Vec3
+	Albedo     Texture
 	Roughness float64
 }
 
-func NewMetal(albedo Vec3, roughness float64) Metal {
+func NewMetal(albedo Texture, roughness float64) Metal {
 	return Metal{Albedo: albedo, Roughness: roughness}
 }
 
@@ -16,7 +16,7 @@ func reflect(i Vec3, n Vec3) Vec3 {
 func (m Metal) Scatter(in Ray, rec HitRef) (bool, *Ray, Vec3) {
 	reflected := reflect(in.Direction, rec.Normal)
 	scattered := NewRay(rec.P, reflected.Add(RandomInUnitSphere().MulScalar(m.Roughness)))
-	attenuation := m.Albedo
+	attenuation := m.Albedo.Value(rec.U, rec.V, rec.P)
 	if scattered.Direction.Dot(rec.Normal) > 0 {
 		return true, scattered, attenuation
 	}

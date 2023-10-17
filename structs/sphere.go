@@ -29,6 +29,7 @@ func (s Sphere) Hit(r *Ray, tMin float64, tMax float64) (bool, HitRef) {
 			outwardNormal := (rec.P.Sub(s.Center)).DivScalar(s.Radius)
 			rec.SetFaceNormal(r, outwardNormal)
 			rec.Mat = s.Mat
+			rec.U, rec.V = s.GetUV(outwardNormal)
 			// rec.Normal = rec.P.Sub(s.Center).DivScalar(s.Radius)
 			return true, rec
 		}
@@ -39,6 +40,7 @@ func (s Sphere) Hit(r *Ray, tMin float64, tMax float64) (bool, HitRef) {
 			outwardNormal := (rec.P.Sub(s.Center)).DivScalar(s.Radius)
 			rec.SetFaceNormal(r, outwardNormal)
 			rec.Mat = s.Mat
+			rec.U, rec.V = s.GetUV(outwardNormal)
 			return true, rec
 		}
 
@@ -56,4 +58,12 @@ func (s Sphere) BoundingBox(time0, time1 float64) (bool, AABB) {
 		Min: s.Center.Sub(Vec3{s.Radius, s.Radius, s.Radius}),
 		Max: s.Center.Add(Vec3{s.Radius, s.Radius, s.Radius}),
 	}
+}
+
+func (s Sphere) GetUV(p Vec3) (float64, float64) {
+	theta := math.Acos(-p.Y)
+	phi := math.Atan2(-p.Z, p.X) + math.Pi
+	u := phi / (2 * math.Pi)
+	v := theta / math.Pi
+	return u, v
 }

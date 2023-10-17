@@ -1,11 +1,11 @@
 package structs
 
 type Lambertian struct {
-	Albedo Vec3
+	Albedo Texture
 }
 
-func NewLambertian(c Vec3) Lambertian {
-	return Lambertian{Albedo: c}
+func NewLambertian(texture Texture) Lambertian {
+	return Lambertian{Albedo: texture}
 }
 
 func (m Lambertian) Scatter(in Ray, rec HitRef) (bool, *Ray, Vec3) {
@@ -16,8 +16,8 @@ func (m Lambertian) Scatter(in Ray, rec HitRef) (bool, *Ray, Vec3) {
 	}
 
 	scattered := NewRay(rec.P, scatterDir)
-	attenuation := &m.Albedo
-	return true, scattered, *attenuation
+	attenuation := m.Albedo.Value(rec.U, rec.V, rec.P)
+	return true, scattered, attenuation
 }
 
 func (m Lambertian) Emitted(u, v float64, p Vec3) Vec3 {
