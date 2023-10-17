@@ -16,12 +16,12 @@ import (
 
 const (
 	// SET IMAGE SIZE
-	ratio = 16.0 / 9.0
-	width = 2560
+	ratio = 1
+	width = 1280
 	// height = 1920
 	// IMAGE OPTIONS
-	aaSamples = 14000 // processing time exponentially increases with more samples, careful -- 1000 is a good number for well lit scenes
-	maxDepth  = 8
+	aaSamples = 1200 // processing time exponentially increases with more samples, careful -- 1000 is a good number for well lit scenes
+	maxDepth  = 24
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
 	height = int(width / ratio)
@@ -50,9 +50,9 @@ var (
 
 	// SET CAMERA FOV
 	cameraUp       = st.Vec3{X: 0, Y: 1, Z: 0}
-	cameraLookFrom = st.Vec3{X: -2, Y: 5, Z: -40}
-	cameraLookAt   = st.Vec3{X: 4, Y: 2, Z: 10}
-	vFov           = 20.0
+	cameraLookFrom = st.Vec3{X: 0, Y: 2, Z: -40}
+	cameraLookAt   = st.Vec3{X: 0, Y: 2.1, Z: 10}
+	vFov           = 26.0
 	// cameraLookFrom         = st.Vec3{X: 380, Y: 278, Z: -800}
 	// cameraLookAt           = st.Vec3{X: 278, Y: 278, Z: 0}
 	// vFov                   = 40.0
@@ -67,17 +67,22 @@ var (
 	objects = []st.Hittable{
 		// floor
 		// st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewLambertian(st.Vec3{X: 1,Y: 1,Z: 1})), // floor
+		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewTransparent(st.Vec3{X: 1, Y: 1, Z: 1}, 1.5, 0.1)), // floor
 		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)), // centered mirror sphere
 		// st.NewRectangularPlane(st.Vec3{-20,-20,-20}, st.Vec3{-20,60,-20},st.Vec3{-20,-20,20}, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)), // large rectangle light
 		// light sphere
-		st.NewSphere(st.Vec3{X: 30, Y: 60, Z: 35}, 30, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 15)),
-		st.NewSphere(st.Vec3{X: 30, Y: -60, Z: 35}, 25, st.NewDiffuseLight(st.Vec3{X: 1, Y: 0, Z: 1}, 15)),
-		st.NewSphere(st.Vec3{X: -30, Y: 60, Z: 35}, 25, st.NewDiffuseLight(st.Vec3{X: 0, Y: 0.1, Z: 0.9}, 15)),
+		st.NewSphere(st.Vec3{X: 25, Y: 60, Z: 35}, 30, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 15)),
+		st.NewSphere(st.Vec3{X: -30, Y: 60, Z: 35}, 12, st.NewDiffuseLight(st.Vec3{X: 1, Y: 0, Z: 1}, 15)),
+		st.NewSphere(st.Vec3{X: 55, Y: 60, Z: 10}, 25, st.NewDiffuseLight(st.Vec3{X: 0, Y: 0.1, Z: 0.9}, 15)),
 
 		// st.NewSphere(st.Vec3{X: -20, Y: 15, Z: 35}, 10, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 3)),
 
 		// st.NewRectangularPrism(st.NewRectangularPlane(st.Vec3{X: 0,Y: 2,Z: 0}, st.Vec3{X: 1,Y: 2,Z: 0}, st.Vec3{X: 0,Y: 2,Z: 1}, st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5})), 2),
 		// st.NewSphere(st.Vec3{X: 0, Y: 25, Z: 0}, 1, st.NewDiffuseLight(st.Vec3{X: 0.99, Y: 0, Z: 0}, 2)),
+
+		st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 0.4, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 2)), // light sphere
+		st.NewSphere(st.Vec3{X: 0, Y: 11, Z: 0}, 0.1, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 1.1)), // light sphere
+
 	}
 	// mat = st.NewLambertian(st.Vec3{X: 0.7, Y: 0.7, Z: 0.7})
 	// triangles = ut.LoadOBJFile("knight.obj", mat)
@@ -108,52 +113,81 @@ func randomFloat(min, max float64) float64 {
 	return min + rand.Float64()*(max-min)
 }
 
-func randomScene() st.World {
-	var material st.Material
-	span := 15
-	for a := -span; a < span; a++ {
-		for b := -span; b < span; b++ {
-			chooseMat := rand.Float64()
-			center := st.Vec3{X: float64(a) + 0.9*rand.Float64(), Y: 0.2, Z: float64(b) + 0.9*rand.Float64()}
-			radius := 0.2
-			if center.Sub(st.Vec3{X: 4, Y: radius, Z: 0}).Length() > 0.9 {
-				switch {
-				case chooseMat < 0.24:
-					albedo := st.Vec3{X: rand.Float64() * rand.Float64(), Y: rand.Float64() * rand.Float64(), Z: rand.Float64() * rand.Float64()}
-					material = st.NewDiffuseLight(albedo, randomFloat(1.8, 4))
-				case chooseMat < 0.3:
-					albedo := st.Vec3{X: rand.Float64() * rand.Float64(), Y: rand.Float64() * rand.Float64(), Z: rand.Float64() * rand.Float64()}
-					material = st.NewLambertian(albedo)
-				case chooseMat < 0.6:
-					albedo := st.Vec3{X: rand.Float64() * rand.Float64(), Y: rand.Float64() * rand.Float64(), Z: rand.Float64() * rand.Float64()}
-					smoothness := randomFloat(0, 1)
-					material = st.NewMetal(albedo, smoothness)
-				default:
-					albedo := st.Vec3{X: rand.Float64() * rand.Float64(), Y: rand.Float64() * rand.Float64(), Z: rand.Float64() * rand.Float64()}
-					material = st.NewTransparent(albedo, 1.5)
-				}
-				objects = append(objects, st.NewSphere(center, radius, material))
-			}
-		}
-	}
-	return st.World{Objects: objects}
-}
+// func randomScene() st.World {
+// 	var material st.Material
+// 	span := 15
+// 	for a := -span; a < span; a++ {
+// 		for b := -span; b < span; b++ {
+// 			chooseMat := rand.Float64()
+// 			center := st.Vec3{X: float64(a) + 0.9*rand.Float64(), Y: 0.2, Z: float64(b) + 0.9*rand.Float64()}
+// 			radius := 0.2
+// 			if center.Sub(st.Vec3{X: 4, Y: radius, Z: 0}).Length() > 0.9 {
+// 				switch {
+// 				case chooseMat < 0.24:
+// 					albedo := st.Vec3{X: rand.Float64() * rand.Float64(), Y: rand.Float64() * rand.Float64(), Z: rand.Float64() * rand.Float64()}
+// 					material = st.NewDiffuseLight(albedo, randomFloat(1.8, 4))
+// 				case chooseMat < 0.3:
+// 					albedo := st.Vec3{X: rand.Float64() * rand.Float64(), Y: rand.Float64() * rand.Float64(), Z: rand.Float64() * rand.Float64()}
+// 					material = st.NewLambertian(albedo)
+// 				case chooseMat < 0.6:
+// 					albedo := st.Vec3{X: rand.Float64() * rand.Float64(), Y: rand.Float64() * rand.Float64(), Z: rand.Float64() * rand.Float64()}
+// 					smoothness := randomFloat(0, 1)
+// 					material = st.NewMetal(albedo, smoothness)
+// 				default:
+// 					albedo := st.Vec3{X: rand.Float64() * rand.Float64(), Y: rand.Float64() * rand.Float64(), Z: rand.Float64() * rand.Float64()}
+// 					material = st.NewTransparent(albedo, 1.5)
+// 				}
+// 				objects = append(objects, st.NewSphere(center, radius, material))
+// 			}
+// 		}
+// 	}
+// 	return st.World{Objects: objects}
+// }
 
 func main() {
 	start := time.Now()
 	fmt.Println("Loading World...")
-	triangles := ut.LoadOBJFile("crystals.obj", st.NewTransparent(st.Vec3{X: 1, Y: 1, Z: 1}, 2.5))
+	triangles := ut.LoadOBJFile("knight.obj", st.NewTransparent(st.Vec3{X: 1, Y: 1, Z: 1}, 2.5, 0.001), st.Vec3{X: 0, Y: 0, Z: 0})
+	// triangles := ut.LoadOBJFile("knight.obj", st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5}), st.Vec3{X: 0, Y: 0, Z: 0})
 	// set camera lookat to the average of all the triangles
 	var sum st.Vec3
 	for _, tri := range triangles {
 		sum = sum.Add(tri.GetPos())
 	}
-	cameraLookAt = sum.DivScalar(float64(len(triangles))).Add(st.Vec3{X: 1, Y: 0, Z: 0})
+	cameraLookAt = sum.DivScalar(float64(len(triangles))).Add(st.Vec3{X: 0, Y: 0.9, Z: 0})
 	focusDist = cameraLookAt.Sub(cameraLookFrom).Length()
 	camera = st.NewCamera(cameraLookFrom, cameraLookAt, cameraUp, vFov, ratio, focusDist, aperture)
 	objects = append(objects, triangles...)
+
+	// create a lot of small illuminated spheres as stars far away in the background
+	for i := 0; i < 1500; i++ {
+		// distance should be no less than 800, no more than 1600 radially from the camera
+		// size should be no less than 0.1, no more than 1.5
+		// brightness should be between 1 and 10
+		// color should be mostly white, but with a randomized blue or off-white tint
+
+		distance := randomFloat(800, 1600)
+		size := randomFloat(0.1, 1.5)
+		brightness := randomFloat(1, 10)
+		color := st.Vec3{X: randomFloat(0.9, 1), Y: randomFloat(0.9, 1), Z: randomFloat(0.9, 1)}
+
+		// get a random point on a sphere
+		theta := randomFloat(0, 2*math.Pi)
+		phi := randomFloat(0, math.Pi)
+		x := distance * math.Sin(phi) * math.Cos(theta)
+		y := distance * math.Sin(phi) * math.Sin(theta)
+		z := distance * math.Cos(phi)
+		pos := st.Vec3{X: x, Y: y, Z: z}
+
+		// create the sphere
+		objects = append(objects, st.NewSphere(pos, size, st.NewDiffuseLight(color, brightness)))
+	}
+
+
+
+
 	world := st.World{Objects: objects}
-	fmt.Println("Done Loading World")
+	fmt.Println("Done Loading World\n")
 	// world := randomScene()
 	fmt.Println("Building BVH. This may take a while...")
 	world_bvh := st.NewBVHNode(world.Objects, 0, len(world.Objects), 0, 0)
