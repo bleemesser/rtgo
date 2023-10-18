@@ -6,7 +6,7 @@ type Quad struct {
 }
 
 func NewQuad(a, b, c, d Vec3, mat Material) *Quad {	
-	tri1 := NewTriangle(b, c, a, mat)
+	tri1 := NewTriangle(c,a,b, mat)
 	tri2 := NewTriangle(a, c, d, mat)
 	return &Quad{tri1: tri1, tri2: tri2, Mat: mat}
 }
@@ -16,7 +16,6 @@ func (q *Quad) Hit(r *Ray, tMin, tMax float64) (bool, HitRef) {
 	hit2, hitRef2 := q.tri2.Hit(r, tMin, tMax)
 	hitRef2.U = 1 - hitRef2.U
 
-	hitRef1.U = 1-hitRef1.U
 	hitRef1.V = 1-hitRef1.V
 	
 	if hit1 && hit2 {

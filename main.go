@@ -20,8 +20,8 @@ const (
 	width = 1280
 	// height = 1920
 	// IMAGE OPTIONS
-	aaSamples = 10 // processing time exponentially increases with more samples, careful -- 1000 is a good number for well lit scenes
-	maxDepth  = 8
+	aaSamples = 1000 // processing time exponentially increases with more samples, careful -- 1000 is a good number for well lit scenes
+	maxDepth  = 20 // the number of times a ray can bounce before it is no longer considered
 	exposure  = 1 // (samples per pixel, default 1, lower is brighter)
 
 	height = int(width / ratio)
@@ -52,7 +52,7 @@ var (
 	cameraUp       = st.Vec3{X: 0, Y: 1, Z: 0}
 	cameraLookFrom = st.Vec3{X: 0, Y: 2, Z: 40}
 	cameraLookAt   = st.Vec3{X: 0, Y: 0, Z: 0}
-	vFov           = 26.0
+	vFov           = 28.0
 	// cameraLookFrom         = st.Vec3{X: 380, Y: 278, Z: -800}
 	// cameraLookAt           = st.Vec3{X: 278, Y: 278, Z: 0}
 	// vFov                   = 40.0
@@ -62,41 +62,34 @@ var (
 	camera = st.NewCamera(cameraLookFrom, cameraLookAt, cameraUp, vFov, ratio, focusDist, aperture)
 
 	backgroundColor       = st.Vec3{X: 0, Y: 0, Z: 0}
-	useBackgroundGradient = true
+	useBackgroundGradient = false
 
 	objects = []st.Hittable{
 		// floor
-		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewLambertian(st.NewSolidColor(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5}))),
-		// st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewTransparent(st.Vec3{X: 1, Y: 1, Z: 1}, 1.5, 0.1)), // floor
-		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 1, st.NewMetal(st.Vec3{X: 0.9, Y: 0.9, Z: 0.9}, 0)), // centered mirror sphere
-		// st.NewRectangularPlane(st.Vec3{-20,-20,-20}, st.Vec3{-20,60,-20},st.Vec3{-20,-20,20}, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 6)), // large rectangle light
-		// light sphere
-		// st.NewSphere(st.Vec3{X: 25, Y: 60, Z: 35}, 30, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 15)),
-		// st.NewSphere(st.Vec3{X: -30, Y: 60, Z: 35}, 12, st.NewDiffuseLight(st.Vec3{X: 1, Y: 0, Z: 1}, 15)),
-		// st.NewSphere(st.Vec3{X: 55, Y: 60, Z: 10}, 25, st.NewDiffuseLight(st.Vec3{X: 0, Y: 0.1, Z: 0.9}, 15)),
+		// st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewLambertian(st.NewSolidColor(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5}))),
+		st.NewSphere(st.Vec3{X: 0, Y: -100000, Z: -20}, 100000, st.NewTransparent(st.NewSolidColor(st.Vec3{X: 1, Y: 1, Z: 1}), 1.5, 0.01)),
 
-		// st.NewSphere(st.Vec3{X: -20, Y: 15, Z: 35}, 10, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 3)),
+		st.NewSphere(st.Vec3{X: 25, Y: 60, Z: 30}, 30, st.NewDiffuseLight(st.NewSolidColor(st.Vec3{X: 1, Y: 1, Z: 1}), 15)),
+		st.NewSphere(st.Vec3{X: -30, Y: 60, Z: 30}, 12, st.NewDiffuseLight(st.NewSolidColor(st.Vec3{X: 1, Y: 0, Z: 1}), 15)),
+		st.NewSphere(st.Vec3{X: 55, Y: 60, Z: 10}, 25, st.NewDiffuseLight(st.NewSolidColor(st.Vec3{X: 0, Y: 0.1, Z: 0.9}), 15)),
 
-		// st.NewRectangularPrism(st.NewRectangularPlane(st.Vec3{X: 0,Y: 2,Z: 0}, st.Vec3{X: 1,Y: 2,Z: 0}, st.Vec3{X: 0,Y: 2,Z: 1}, st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5})), 2),
-		// st.NewSphere(st.Vec3{X: 0, Y: 25, Z: 0}, 1, st.NewDiffuseLight(st.Vec3{X: 0.99, Y: 0, Z: 0}, 2)),
-
-		// st.NewSphere(st.Vec3{X: 0, Y: 1, Z: 0}, 0.4, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 2)), // light sphere
-		// st.NewSphere(st.Vec3{X: 0, Y: 11, Z: 0}, 0.1, st.NewDiffuseLight(st.Vec3{X: 1, Y: 1, Z: 1}, 1.1)), // light sphere
-
-		// st.NewSphere(st.Vec3{X: -4, Y: 0, Z: 0}, 1, st.NewLambertian(st.NewPngTexture("earthmap.png"))), // centered mirror sphere
-		// st.NewSphere(st.Vec3{X: -2, Y: 0, Z: 0}, 1, st.NewMetal(st.NewPngTexture("earthmap.png"), 0)), // centered mirror sphere
-		// st.NewSphere(st.Vec3{X: 0, Y: 0, Z: 0}, 1, st.NewTransparent(st.NewPngTexture("earthmap.png"), 1.5, 0.1)), // centered glass sphere
-		// st.NewSphere(st.Vec3{X: 2, Y: 0, Z: 0}, 1, st.NewDiffuseLight(st.NewPngTexture("earthmap.png"), 2)), // centered light sphere
 
 		// add 2 triangles that meet to make a square
 		// st.NewTriangle(st.Vec3{X: -2, Y: 0, Z: 0}, st.Vec3{X: -2, Y: 4, Z: 0}, st.Vec3{X: 2, Y: 0, Z: -10}, st.NewLambertian(st.NewPngTexture("checker.png"))),
-		st.NewQuad(st.Vec3{X: -2, Y: 0, Z: 0}, st.Vec3{X: -2, Y: 4, Z: 0}, st.Vec3{X: 2, Y: 4, Z: 0}, st.Vec3{X: 2, Y: 0, Z: 0}, st.NewLambertian(st.NewPngTexture("tree.png"))),
-		// st.NewTriangle(st.Vec3{X: -2, Y: 4, Z: 0}, st.Vec3{X: 2, Y: 4, Z: 0}, st.Vec3{X: 2, Y: 0, Z: 0}, st.NewLambertian(st.NewPngTexture("checker.png"))),
+		// st.NewQuad(st.Vec3{X: -2, Y: 0, Z: 0}, st.Vec3{X: -2, Y: 4, Z: 0}, st.Vec3{X: 2, Y: 4, Z: 0}, st.Vec3{X: 2, Y: 0, Z: 0}, st.NewTransparent(st.NewSolidColor(st.Vec3{1,1,1}), 1.5, 0)),
+
+		// light sphere behind the quad
+
+		// st.NewSphere(st.Vec3{X: 0, Y: 2, Z: -3}, 1, st.NewDiffuseLight(st.NewSolidColor(st.Vec3{1,0,1}), 10)), // centered light sphere
+
+
+		// large light above and in front of the quad
+		// st.NewSphere(st.Vec3{X: 0, Y: 20, Z: 15}, 5, st.NewDiffuseLight(st.NewSolidColor(st.Vec3{1,1,1}), 2)), // centered light sphere
 		// make small spheres for a b c d of the quad
-		st.NewSphere(st.Vec3{X: -2, Y: 0, Z: 0}, 0.1, st.NewLambertian(st.NewSolidColor(st.Vec3{X: 1, Y: 0, Z: 0}))),
-		st.NewSphere(st.Vec3{X: -2, Y: 4, Z: 0}, 0.1, st.NewLambertian(st.NewSolidColor(st.Vec3{X: 0, Y: 1, Z: 0}))),
-		st.NewSphere(st.Vec3{X: 2, Y: 4, Z: 0}, 0.1, st.NewLambertian(st.NewSolidColor(st.Vec3{X: 0, Y: 0, Z: 1}))),
-		st.NewSphere(st.Vec3{X: 2, Y: 0, Z: 0}, 0.1, st.NewLambertian(st.NewSolidColor(st.Vec3{X: 1, Y: 1, Z: 0}))),
+		// st.NewSphere(st.Vec3{X: -2, Y: 0, Z: 0}, 0.1, st.NewLambertian(st.NewSolidColor(st.Vec3{X: 1, Y: 0, Z: 0}))),
+		// st.NewSphere(st.Vec3{X: -2, Y: 4, Z: 0}, 0.1, st.NewLambertian(st.NewSolidColor(st.Vec3{X: 0, Y: 1, Z: 0}))),
+		// st.NewSphere(st.Vec3{X: 2, Y: 4, Z: 0}, 0.1, st.NewLambertian(st.NewSolidColor(st.Vec3{X: 0, Y: 0, Z: 1}))),
+		// st.NewSphere(st.Vec3{X: 2, Y: 0, Z: 0}, 0.1, st.NewLambertian(st.NewSolidColor(st.Vec3{X: 1, Y: 1, Z: 0}))),
 
 	}
 	// mat = st.NewLambertian(st.Vec3{X: 0.7, Y: 0.7, Z: 0.7})
@@ -162,43 +155,40 @@ func randomFloat(min, max float64) float64 {
 func main() {
 	start := time.Now()
 	fmt.Println("Loading World...")
-	// triangles := ut.LoadOBJFile("knight.obj", st.NewTransparent(st.Vec3{X: 1, Y: 1, Z: 1}, 2.5, 0.001), st.Vec3{X: 0, Y: 0, Z: 0})
-	// use checker
-	// triangles := ut.LoadOBJFile("knight.obj", st.NewLambertian(st.NewPngTexture("checker.png")), st.Vec3{X: 0, Y: 0, Z: 0})
-	// // triangles := ut.LoadOBJFile("knight.obj", st.NewLambertian(st.Vec3{X: 0.5, Y: 0.5, Z: 0.5}), st.Vec3{X: 0, Y: 0, Z: 0})
-	// // set camera lookat to the average of all the triangles
-	// var sum st.Vec3
-	// for _, tri := range triangles {
-	// 	sum = sum.Add(tri.GetPos())
-	// }
-	// cameraLookAt = sum.DivScalar(float64(len(triangles))).Add(st.Vec3{X: 0, Y: 0.9, Z: 0})
-	// focusDist = cameraLookAt.Sub(cameraLookFrom).Length()
-	// camera = st.NewCamera(cameraLookFrom, cameraLookAt, cameraUp, vFov, ratio, focusDist, aperture)
-	// objects = append(objects, triangles...)
+	triangles := ut.LoadOBJFile("knight.obj", st.NewTransparent(st.NewSolidColor(st.Vec3{1,1,1}), 2.5, 0.001), st.Vec3{X: 0, Y: 0, Z: 0})
+	// set camera lookat to the average of all the triangles
+	var sum st.Vec3
+	for _, tri := range triangles {
+		sum = sum.Add(tri.GetPos())
+	}
+	cameraLookAt = sum.DivScalar(float64(len(triangles))).Add(st.Vec3{X: 0, Y: 0.9, Z: 0})
+	focusDist = cameraLookAt.Sub(cameraLookFrom).Length()
+	camera = st.NewCamera(cameraLookFrom, cameraLookAt, cameraUp, vFov, ratio, focusDist, aperture)
+	objects = append(objects, triangles...)
 
 	// create a lot of small illuminated spheres as stars far away in the background
-	// for i := 0; i < 1500; i++ {
-	// 	// distance should be no less than 800, no more than 1600 radially from the camera
-	// 	// size should be no less than 0.1, no more than 1.5
-	// 	// brightness should be between 1 and 10
-	// 	// color should be mostly white, but with a randomized blue or off-white tint
+	for i := 0; i < 1500; i++ {
+		// distance should be no less than 800, no more than 1600 radially from the camera
+		// size should be no less than 0.1, no more than 1.5
+		// brightness should be between 1 and 10
+		// color should be mostly white, but with a randomized blue or off-white tint
 
-	// 	distance := randomFloat(800, 1600)
-	// 	size := randomFloat(0.1, 1.5)
-	// 	brightness := randomFloat(1, 10)
-	// 	color := st.Vec3{X: randomFloat(0.9, 1), Y: randomFloat(0.9, 1), Z: randomFloat(0.9, 1)}
+		distance := randomFloat(800, 1600)
+		size := randomFloat(0.1, 1.5)
+		brightness := randomFloat(1, 10)
+		color := st.Vec3{X: randomFloat(0.9, 1), Y: randomFloat(0.9, 1), Z: randomFloat(0.9, 1)}
 
-	// 	// get a random point on a sphere
-	// 	theta := randomFloat(0, 2*math.Pi)
-	// 	phi := randomFloat(0, math.Pi)
-	// 	x := distance * math.Sin(phi) * math.Cos(theta)
-	// 	y := distance * math.Sin(phi) * math.Sin(theta)
-	// 	z := distance * math.Cos(phi)
-	// 	pos := st.Vec3{X: x, Y: y, Z: z}
+		// get a random point on a sphere
+		theta := randomFloat(0, 2*math.Pi)
+		phi := randomFloat(0, math.Pi)
+		x := distance * math.Sin(phi) * math.Cos(theta)
+		y := distance * math.Sin(phi) * math.Sin(theta)
+		z := distance * math.Cos(phi)
+		pos := st.Vec3{X: x, Y: y, Z: z}
 
-	// 	// create the sphere
-	// 	objects = append(objects, st.NewSphere(pos, size, st.NewDiffuseLight(color, brightness)))
-	// }
+		// create the sphere
+		objects = append(objects, st.NewSphere(pos, size, st.NewDiffuseLight(st.NewSolidColor(color), brightness)))
+	}
 
 
 	world := st.World{Objects: objects}
